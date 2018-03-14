@@ -27,17 +27,19 @@ int main() {
 	VIDEO_WaitVSync();
 	if(rmode->viTVMode&VI_NON_INTERLACE) VIDEO_WaitVSync();
 
+	printf("\n\n\n\n\n\n");
+
 	/* Configure for use with USB on EXI channel 1 (memcard slot B) */
 	/* Other option: GDBSTUB_DEVICE_TCP. Note: second parameter acts as port for this type of device */
 	DEBUG_Init(GDBSTUB_DEVICE_USB,1);
 
 
-	printf("Waiting for debugger ...\n");
+//	printf("Waiting for debugger ...\n");
 	/* This function call enters the debug stub for the first time */
 	/* It's needed to call this if one wants to start debugging. */
-	_break();
+//	_break();
 
-	printf("debugger connected ...\n");
+//	printf("debugger connected ...\n");
 
 	while(1) {
 
@@ -48,6 +50,14 @@ int main() {
 
 		if(buttons & WPAD_BUTTON_A) {
 			printf("Button A pressed.\n");
+		}
+
+		if(buttons & WPAD_BUTTON_B) {
+			printf("Button B pressed.\n");
+
+			printf("Waiting for debugger ...\n");
+			_break();
+			printf("debugger connected ...\n");
 		}
 
 		if (buttons & WPAD_BUTTON_HOME) break;
