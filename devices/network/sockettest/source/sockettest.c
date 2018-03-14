@@ -32,6 +32,8 @@ int main(int argc, char **argv) {
 	printf("Configuring network ...\n");
 
 	// Configure the network interface
+	// Only DHCP is supported; network_wii.c!
+	//ret = if_config ( localip, netmask, gateway, FALSE, 20);
 	ret = if_config ( localip, netmask, gateway, TRUE, 20);
 	if (ret>=0) {
 		printf ("network configured, ip: %s, gw: %s, mask %s\n", localip, gateway, netmask);
@@ -51,11 +53,17 @@ int main(int argc, char **argv) {
 		VIDEO_WaitVSync();
 		WPAD_ScanPads();
 
-		int buttonsDown = WPAD_ButtonsDown(0);
+		int buttons = WPAD_ButtonsDown(0);
 
-		if (buttonsDown & WPAD_BUTTON_HOME) {
-			exit(0);
+		if(buttons & WPAD_BUTTON_A) {
+			printf("Button A pressed.\n");
 		}
+
+		if(buttons & WPAD_BUTTON_B) {
+			printf("Button B pressed.\n");
+		}
+
+		if (buttons & WPAD_BUTTON_HOME) break;
 	}
 
 	return 0;
