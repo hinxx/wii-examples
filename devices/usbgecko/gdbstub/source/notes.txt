@@ -1,0 +1,159 @@
+
+Stock devkitPro gdb 7.11
+
+hinxx@suss ~/wii/git/wii-examples/devices/usbgecko/gdbstub $ powerpc-eabi-gdb ./gdbstub.elf 
+GNU gdb (GDB) 7.11
+Copyright (C) 2016 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+and "show warranty" for details.
+This GDB was configured as "--host=x86_64-pc-linux-gnu --target=powerpc-eabi".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+<http://www.gnu.org/software/gdb/bugs/>.
+Find the GDB manual and other documentation resources online at:
+<http://www.gnu.org/software/gdb/documentation/>.
+For help, type "help".
+Type "apropos word" to search for commands related to "word"...
+Reading symbols from ./gdbstub.elf...done.
+
+(gdb) set debug remote 1
+(gdb) target remote /dev/ttyUSB0
+
+
+Remote debugging using /dev/ttyUSB0
+Sending packet: $qSupported:multiprocess+;swbreak+;hwbreak+;qRelocInsn+;fork-events+;vfork-events+;exec-events+;vContSupported+;QThreadEvents+;no-resumed+#df...Ack
+Packet received: 
+Packet qSupported (supported-packets) is NOT supported
+Sending packet: $Hg0#df...Ack
+Packet received: E01
+Sending packet: $qTStatus#49...Ack
+Packet received: 
+Packet qTStatus (trace-status) is NOT supported
+Sending packet: $?#3f...Ack
+Packet received: T0501:800f07d0;40:80006a48;thread:2;
+Sending packet: $qfThreadInfo#bb...Ack
+Packet received: 
+Sending packet: $qL1200000000000000000#50...Ack
+Packet received: qM021000000000000000000000000000000010000000000000002
+../../../gdb-7.11/gdb/inferior.c:352: internal-error: find_inferior_pid: Assertion `pid != 0' failed.
+A problem internal to GDB has been detected,
+further debugging may prove unreliable.
+Quit this debugging session? (y or n) 
+
+Patched libogc/libdb/debug.c:
+
+diff --git a/libdb/debug.c b/libdb/debug.c
+index f9dce17..f77d8df 100644
+--- a/libdb/debug.c
++++ b/libdb/debug.c
+@@ -361,6 +361,19 @@
+ 				packqmheader(outp,i,done,athread);
+ 			}
+ 			break;
++		/* HK: handle qfThreadInfo */
++		case 'f':
++			{
++				if (inp[2] != 'T' && inp[3] != 'h') {
++					strcpy(outp,"E99");
++					break;
++				}
++				optr = outp;
++				*optr++ = 'm';
++				optr = thread2vhstr(optr,thread);
++				*optr++ = 0;
++			}
++			break;
+ 		default:
+ 			break;
+ 	}
+
+
+hinxx@suss ~/wii/git/wii-examples/devices/usbgecko/gdbstub $ cat gdb.txt 
+set debug remote 1
+target remote /dev/ttyUSB0
+
+$ sudo stty -F /dev/ttyUSB0 speed 9600 baud; line = 0;
+min = 0; time = 0;
+-brkint -icrnl -imaxbel
+-opost -onlcr
+-isig -icanon -iexten -echo -echoe -echok -echoctl -echoke
+
+
+hinxx@suss ~/wii/git/wii-examples/devices/usbgecko/gdbstub $ powerpc-eabi-gdb gdbstub.elf -x gdb.txt 
+GNU gdb (GDB) 7.11
+Copyright (C) 2016 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+and "show warranty" for details.
+This GDB was configured as "--host=x86_64-pc-linux-gnu --target=powerpc-eabi".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+<http://www.gnu.org/software/gdb/bugs/>.
+Find the GDB manual and other documentation resources online at:
+<http://www.gnu.org/software/gdb/documentation/>.
+For help, type "help".
+Type "apropos word" to search for commands related to "word"...
+Reading symbols from gdbstub.elf...done.
+Sending packet: $qSupported:multiprocess+;swbreak+;hwbreak+;qRelocInsn+;fork-events+;vfork-events+;exec-events+;vContSupported+;QThreadEvents+;no-resumed+#df...Ack
+Packet received: 
+Packet qSupported (supported-packets) is NOT supported
+Sending packet: $Hg0#df...Ack
+Packet received: E01
+Sending packet: $qTStatus#49...Ack
+Packet received: 
+Packet qTStatus (trace-status) is NOT supported
+Sending packet: $?#3f...Ack
+Packet received: T0501:800ef650;40:80006adc;thread:2;
+Sending packet: $qfThreadInfo#bb...Ack
+Packet received: m2
+Sending packet: $qsThreadInfo#c8...Ack
+Packet received: 
+Sending packet: $qAttached#8f...Ack
+Packet received: 
+Packet qAttached (query-attached) is NOT supported
+Sending packet: $Hc-1#09...Ack
+Packet received: OK
+Sending packet: $qOffsets#4b...Ack
+Packet received: 
+Sending packet: $qfThreadInfo#bb...Ack
+Packet received: m2
+Sending packet: $qsThreadInfo#c8...Ack
+Packet received: 
+_break () at /home/hinxx/wii/git/libogc/libdb/debug.c:628
+warning: Source file is more recent than executable.
+628		if(!dbg_initialized) return;
+Sending packet: $qSymbol::#5b...Ack
+Packet received: 
+Packet qSymbol (symbol-lookup) is NOT supported
+(gdb) c
+Continuing.
+Sending packet: $vCont?#49...Ack
+Packet received: 
+Packet vCont (verbose-resume) is NOT supported
+Sending packet: $Hc0#db...Ack
+Packet received: OK
+Sending packet: $c#63...Ack
+Packet received: T0501:800ef650;40:80006ad8;thread:2;
+Sending packet: $qfThreadInfo#bb...Ack
+Packet received: m2
+Sending packet: $qsThreadInfo#c8...Ack
+Packet received: 
+
+Program received signal SIGTRAP, Trace/breakpoint trap.
+0x80006ad8 in _break () at /home/hinxx/wii/git/libogc/libdb/debug.c:627
+627	{
+(gdb) c
+Continuing.
+Sending packet: $c#63...Ack
+
+c
+^Casync_remote_interrupt called
+remote_interrupt called
+
+^Casync_remote_interrupt_twice called
+The target is not responding to interrupt requests.
+Stop debugging it? (y or n) y
+Disconnected from target.
